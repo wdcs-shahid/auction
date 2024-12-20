@@ -34,23 +34,20 @@ module my_address::auction {
     }
 
     struct Id has key {
-        deployer_addr: address,
         id: u64
     }
 
     fun init_module(account: &signer) {
-        let deployer_addr = signer::address_of(account);
         let id = Id {
-            deployer_addr,
             id: 1
         };
         move_to(account, id)
     }
 
-    public entry fun create_auction(account: &signer, deployer_addr:address,item_name: vector<u8>, starting_bid: u64) acquires Id {
+    public entry fun create_auction(account: &signer,item_name: vector<u8>, starting_bid: u64) acquires Id {
         let creator_addr = signer::address_of(account);
-        assert!(exists<Id>(deployer_addr),error::not_found(EWRONG_DEPLOYER_ADDRESS));
-        let auction_id = borrow_global_mut<Id>(deployer_addr);
+        assert!(exists<Id>(@my_address),error::not_found(EWRONG_DEPLOYER_ADDRESS));
+        let auction_id = borrow_global_mut<Id>(@my_address);
         let new_auction = Auction {
             auction_id: auction_id.id,
             creator_addr,
@@ -100,7 +97,7 @@ module my_address::auction {
     }
 
     #[test(
-        deployer = @0x1234,
+        deployer = @my_address,
         creator_1 = @0x222,
         creator_2 = @0x3333,
         bidder_1 = @0x444,
@@ -134,8 +131,8 @@ module my_address::auction {
 
         init_module(&deployer);
 
-        create_auction(&creator_1,deployer_addr, b"horse", 50);
-        create_auction(&creator_2,deployer_addr, b"house", 100);
+        create_auction(&creator_1, b"horse", 50);
+        create_auction(&creator_2, b"house", 100);
         let starting_bid_1 = view_highest_bid(creator1_addr , 1);
         let starting_bid_2 = view_highest_bid(creator2_addr , 2);
 
@@ -192,23 +189,7 @@ module my_address::auction {
     }
 
     #[test(
-        deployer = @0x1234,
-        creator_1 = @0x222,
-        creator_2 = @0x3333,
-    )]
-    #[expected_failure(abort_code = 393217, location = Self
-    )]
-    public entry fun testfail_for_deployer(deployer : signer , creator_1 : signer,creator_2 : address)acquires Id {
-        let deployer_addr = signer::address_of(&deployer);
-        aptos_framework::account::create_account_for_test(deployer_addr);
-        aptos_framework::account::create_account_for_test(signer::address_of(&creator_1));
-        aptos_framework::account::create_account_for_test(creator_2);
-     init_module(&deployer);
-        create_auction(&creator_1,creator_2,b"horse",50)
-    }
-
-    #[test(
-    deployer = @0x1234,
+    deployer = @my_address,
     creator_1 = @0x222,
     creator_2 = @0x3333,
     bidder_1 = @0x444,
@@ -225,13 +206,13 @@ module my_address::auction {
 
         init_module(&deployer);
 
-        create_auction(&creator_1,deployer_addr,b"horse",50);
+        create_auction(&creator_1,b"horse",50);
 
         place_bid(&bidder_1,creator_2,1,60)
     }
 
     #[test(
-    deployer = @0x1234,
+    deployer = @my_address,
     creator_1 = @0x222,
     creator_2 = @0x3333,
     bidder_1 = @0x444,
@@ -251,7 +232,7 @@ module my_address::auction {
 
         init_module(&deployer);
 
-        create_auction(&creator_1,deployer_addr,b"horse",50);
+        create_auction(&creator_1,b"horse",50);
 
         place_bid(&bidder_1,creator1_addr,1,60);
 
@@ -261,7 +242,7 @@ module my_address::auction {
     }
 
     #[test(
-    deployer = @0x1234,
+    deployer = @my_address,
     creator_1 = @0x222,
     bidder_1 = @0x444,
     )]
@@ -277,14 +258,14 @@ module my_address::auction {
 
         init_module(&deployer);
 
-        create_auction(&creator_1,deployer_addr,b"horse",50);
+        create_auction(&creator_1,b"horse",50);
 
         place_bid(&bidder_1,creator1_addr,2,60);
 
     }
 
     #[test(
-    deployer = @0x1234,
+    deployer = @my_address,
     creator_1 = @0x222,
     bidder_1 = @0x444,
     )]
@@ -300,13 +281,13 @@ module my_address::auction {
 
         init_module(&deployer);
 
-        create_auction(&creator_1,deployer_addr,b"horse",50);
+        create_auction(&creator_1,b"horse",50);
 
         place_bid(&bidder_1,creator1_addr,1,40);
     }
 
     #[test(
-    deployer = @0x1234,
+    deployer = @my_address,
     creator_1 = @0x222,
     bidder_1 = @0x444,
         bidder_2 = @0x555
@@ -324,7 +305,7 @@ module my_address::auction {
 
         init_module(&deployer);
 
-        create_auction(&creator_1,deployer_addr,b"horse",50);
+        create_auction(&creator_1,b"horse",50);
 
         place_bid(&bidder_1,creator1_addr,1,100);
         place_bid(&bidder_2,creator1_addr,1,150);
@@ -334,7 +315,7 @@ module my_address::auction {
     }
 
     #[test(
-    deployer = @0x1234,
+    deployer = @my_address,
     creator_1 = @0x222,
     bidder_1 = @0x444,
     bidder_2 = @0x555
@@ -352,7 +333,7 @@ module my_address::auction {
 
         init_module(&deployer);
 
-        create_auction(&creator_1,deployer_addr,b"horse",50);
+        create_auction(&creator_1,b"horse",50);
 
         place_bid(&bidder_1,creator1_addr,1,100);
         place_bid(&bidder_2,creator1_addr,1,150);
@@ -361,7 +342,7 @@ module my_address::auction {
     }
 
     #[test(
-    deployer = @0x1234,
+    deployer = @my_address,
     creator_1 = @0x222,
     bidder_1 = @0x444,
     bidder_2 = @0x555
@@ -379,7 +360,7 @@ module my_address::auction {
 
         init_module(&deployer);
 
-        create_auction(&creator_1,deployer_addr,b"horse",50);
+        create_auction(&creator_1,b"horse",50);
 
         place_bid(&bidder_1,creator1_addr,1,100);
         place_bid(&bidder_2,creator1_addr,1,150);
